@@ -1,2 +1,2 @@
 # NODEJS-ECOMMERCE-API-V1
-مع الدفع الكاش والالكتروني NodeJs, Express,Mongoose, MongoDB لمشروع متجر إلكتروني متكامل ، باستخدام "RESTful APIs" بناء
+Building Restful APIs for a Full eCommerce Project Using Express, NodeJS, MongoDB, Mongoose
