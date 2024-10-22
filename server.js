@@ -4,12 +4,16 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-const categoryRouter = require('./routes/categoryRoutes');
-const subCategoryRouter = require('./routes/subCategoryRoutes');
-const brandRouter = require('./routes/brandRoutes');
 const dbConnection = require('./config/dbConnection');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./Middlewares/globalErrorHandler');
+
+// Routes
+const categoryRouter = require('./routes/categoryRoutes');
+const subCategoryRouter = require('./routes/subCategoryRoutes');
+const brandRouter = require('./routes/brandRoutes');
+const productRouter = require('./routes/productRoutes');
+
 // connect to database
 dbConnection();
 
@@ -21,10 +25,11 @@ if (process.env.NODE_ENV === 'development') {
 }
 app.use(express.json());
 
-// routes
+// Mount Routes
 app.use('/api/v1/categories', categoryRouter);
 app.use('/api/v1/subcategories', subCategoryRouter);
 app.use('/api/v1/brands', brandRouter);
+app.use('/api/v1/products', productRouter);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`No Path with This URL: ${req.originalUrl}`, 404));
