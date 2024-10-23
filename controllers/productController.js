@@ -18,15 +18,39 @@ const addProduct = asyncHandler(async (req, res) => {
 //@route    GET /api/v1/products
 //@access   Public
 const getProducts = asyncHandler(async (req, res) => {
-  // Pagination
+  // 1- Filtering
+  const queryStringObj = { ...req.query };
+  const keyWords = ['page', 'limit', 'sort', 'field'];
+  keyWords.forEach((key) => delete queryStringObj[key]);
+
+  // Apply using [gte, gt, lte, lt] in Filtering
+  let queryStr = JSON.stringify(queryStringObj);
+  queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+
+  // 2- Pagination
   const page = req.query.page * 1 || 1;
   const limit = req.query.limit * 1 || 4;
   const skip = (page - 1) * limit;
-  const products = await Product.find({})
+
+  // Query Building
+  let mongooseQuery = Product.find(JSON.parse(queryStr))
     .skip(skip)
     .limit(limit)
     .populate({ path: 'category', select: 'name-_id' })
     .populate({ path: 'subcategory', select: 'name -_id' });
+
+  // 3- Sorting
+  if (req.query.sort) {
+    let sortStr = req.query.sort;
+    sortStr = sortStr.split(',').join(' ');
+    mongooseQuery = mongooseQuery.sort(sortStr);
+  } else {
+    mongooseQuery = mongooseQuery.sort('-createdAt');
+  }
+
+  // Excuting Query
+  const products = await mongooseQuery;
+
   res.status(200).json({
     status: httpStatusText.SUCCESS,
     results: products.length,
