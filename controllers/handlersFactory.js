@@ -23,7 +23,7 @@ const updateOne = (Model) =>
       return next(new AppError(`id is missing`, 400));
     }
 
-    const document = await Model.findById(req.params.id, req.body, {
+    const document = await Model.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     });
     if (!document) {

@@ -10,13 +10,20 @@ router.use('/:categoryId/subcategories', subCategoryRouter);
 
 router
   .route('/')
-  .post(CategoryValidator.addCategoryValidator, categoryControllers.addCategory)
+  .post(
+    categoryControllers.uploadImage,
+    categoryControllers.resizeImage,
+    CategoryValidator.addCategoryValidator,
+    categoryControllers.addCategory
+  )
   .get(categoryControllers.getCategories);
 
 router
   .route('/:id')
   .get(CategoryValidator.getCategoryValidator, categoryControllers.getCategory)
   .put(
+    categoryControllers.uploadImage,
+    categoryControllers.resizeImage,
     CategoryValidator.updateCategoryValidator,
     categoryControllers.UpdateCategory
   )

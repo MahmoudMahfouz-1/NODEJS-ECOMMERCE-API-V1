@@ -25,10 +25,12 @@ const addCategoryValidator = [
 
 const updateCategoryValidator = [
   check('id').isMongoId().withMessage('Invalid MongoDB ID Format'),
-  body('name').custom((val, { req }) => {
-    req.body.slug = slugify(val, { lower: true });
-    return true;
-  }),
+  body('name')
+    .optional()
+    .custom((val, { req }) => {
+      req.body.slug = slugify(val, { lower: true });
+      return true;
+    }),
   expressValidator,
 ];
 

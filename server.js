@@ -24,6 +24,7 @@ if (process.env.NODE_ENV === 'development') {
   console.log(`Current Mode is ${process.env.NODE_ENV}`);
 }
 app.use(express.json());
+app.use(express.static(__dirname, { path: 'uploads' }));
 
 // Mount Routes
 app.use('/api/v1/categories', categoryRouter);
