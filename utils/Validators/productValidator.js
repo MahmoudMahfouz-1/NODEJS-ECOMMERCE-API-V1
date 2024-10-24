@@ -1,5 +1,5 @@
-const { check } = require('express-validator');
-
+const { check, body } = require('express-validator');
+const slugify = require('slugify');
 const expressValidator = require('../../Middlewares/expressValidator');
 const Category = require('../../models/categoryModel');
 const subCategory = require('../../models/subCategoryModel');
@@ -11,7 +11,11 @@ const addProductValidator = [
     .isLength({ min: 3 })
     .withMessage('product name is too short')
     .isLength({ max: 128 })
-    .withMessage('product title is too long'),
+    .withMessage('product title is too long')
+    .custom((val, { req }) => {
+      req.body.slug = slugify(val, { lower: true });
+      return true;
+    }),
   check('description')
     .notEmpty()
     .withMessage('Product descreption is required')
@@ -124,6 +128,10 @@ const getProductValidator = [
 
 const updateProductValidator = [
   check('id').isMongoId().withMessage('Invalid MongoDB ID Format'),
+  body('title').custom((val, { req }) => {
+    req.body.slug = slugify(val, { lower: true });
+    return true;
+  }),
   expressValidator,
 ];
 
