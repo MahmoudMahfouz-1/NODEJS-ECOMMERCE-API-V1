@@ -73,6 +73,7 @@ const addProductValidator = [
     .isMongoId()
     .withMessage('Invalid ID Format')
     .custom(async (subCategoryIds) => {
+      subCategoryIds = [];
       const result = await subCategory.find({
         _id: { $exists: true, $in: subCategoryIds },
       });
@@ -85,6 +86,8 @@ const addProductValidator = [
     })
     .custom(async (subCategoryIds, { req }) => {
       // we want to make sure that the subCategories we get already belong to the Main Category if NOT then ERROR
+      subCategoryIds = [];
+
       // 1- Get All the Sub Categories that belong to category ID we already have
       const categoryId = req.body.category;
       const existingSubcategories = await subCategory.find({

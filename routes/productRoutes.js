@@ -6,7 +6,12 @@ const router = express.Router();
 
 router
   .route('/')
-  .post(productValidator.addProductValidator, productControllers.addProduct)
+  .post(
+    productControllers.uploadImages,
+    productControllers.resizeImages,
+    productValidator.addProductValidator,
+    productControllers.addProduct
+  )
   .get(productControllers.getProducts);
 
 router

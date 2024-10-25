@@ -83,4 +83,29 @@ productSchema.pre(/^find/, function (next) {
   next();
 });
 
+const imgURL = (doc) => {
+  if (doc.imageCover) {
+    // return full image URL
+    const imageURL = `${process.env.BASE_URL}/uploads/products/${doc.imageCover}`;
+    doc.imageCover = imageURL;
+  }
+  if (doc.images) {
+    // return full image URL
+    const images = [];
+    doc.images.forEach((img) => {
+      const imageURL = `${process.env.BASE_URL}/uploads/products/${img}`;
+      images.push(imageURL);
+    });
+    doc.images = images;
+  }
+};
+// getAll, getOne, update
+productSchema.post('init', (doc) => {
+  imgURL(doc);
+});
+// create
+productSchema.post('save', (doc) => {
+  imgURL(doc);
+});
+
 module.exports = mongoose.model('Product', productSchema);
