@@ -21,7 +21,6 @@ exports.signup = asyncHandler(async (req, res, next) => {
     password: req.body.password,
   });
 
-  // Generate Token
   const token = generateToken(user._id);
   res.status(201).json({ status: httpStatusText.SUCCESS, data: user, token });
 });
@@ -32,9 +31,12 @@ exports.signup = asyncHandler(async (req, res, next) => {
 exports.login = asyncHandler(async (req, res, next) => {
   // verify email and password
   const user = await User.findOne({ email: req.body.email });
-  if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
-    next(new AppError('invalid Credentials', 400));
+  const isCorrect = await bcrypt.compare(req.body.password, user.password);
+  console.log(`isCorrect: `, isCorrect);
+  if (!user || !isCorrect) {
+    return next(new AppError('invalid Credentials', 400));
   }
+
   const token = generateToken(user._id);
-  res.status(201).json({ status: httpStatusText.SUCCESS, data: user, token });
+  res.status(200).json({ status: httpStatusText.SUCCESS, data: user, token });
 });
