@@ -2,6 +2,7 @@ const express = require('express');
 const categoryControllers = require('../controllers/categoryController');
 const CategoryValidator = require('../utils/Validators/categoryValidator');
 const subCategoryRouter = require('./subCategoryRoutes');
+const authController = require('../controllers/authController');
 
 const router = express.Router();
 
@@ -11,6 +12,7 @@ router.use('/:categoryId/subcategories', subCategoryRouter);
 router
   .route('/')
   .post(
+    authController.verifyToken,
     categoryControllers.uploadImage,
     categoryControllers.resizeImage,
     CategoryValidator.addCategoryValidator,

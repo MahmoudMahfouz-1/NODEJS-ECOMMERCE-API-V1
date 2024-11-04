@@ -1,3 +1,4 @@
+const AppError = require('../utils/appError');
 const httpStatusText = require('../utils/httpStatusText');
 
 const sendErrorForDev = (err, res) =>
@@ -8,11 +9,18 @@ const sendErrorForDev = (err, res) =>
     stack: err.stack,
   });
 
-const sendErrorForProd = (err, res) =>
-  res.status(err.statusCode).json({
+const handleInvalidToken = () =>
+  new AppError('Invalid Token Please Login again... ', 401);
+const handleJwtExpire = () =>
+  new AppError('Token Expired Please Login again... ', 401);
+const sendErrorForProd = (err, res) => {
+  if (err.name === 'TokenExpiredError') err = handleJwtExpire();
+  if (err.name === 'JsonWebTokenError') err = handleInvalidToken();
+  err = res.status(err.statusCode).json({
     status: err.status,
     message: err.message,
   });
+};
 
 const globalErrorHandler = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
