@@ -1,9 +1,11 @@
+const crypto = require('crypto');
 const asyncHandler = require('express-async-handler');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/userModel');
 const httpStatusText = require('../utils/httpStatusText');
 const AppError = require('../utils/appError');
+const { sendMail } = require('../utils/sendMail');
 
 const generateToken = (payload) =>
   jwt.sign({ payload }, process.env.JWT_SECRET_KEY, {
@@ -40,8 +42,7 @@ exports.login = asyncHandler(async (req, res, next) => {
   res.status(200).json({ status: httpStatusText.SUCCESS, data: user, token });
 });
 
-//@desc     verifyToken
-//@route    POST /api/v1/auth/login
+//@desc     verifyToken => verifies the token to know wether it's valid or not
 //@access   Private
 exports.verifyToken = asyncHandler(async (req, res, next) => {
   // 1) catch token and verify it
@@ -76,4 +77,63 @@ exports.verifyToken = asyncHandler(async (req, res, next) => {
       )
     );
   }
+
+  req.user = currentUser;
+  next();
+});
+
+//@desc     Checks the roles (Authoraization)
+//@access   Private
+
+exports.allowedTo = (...roles) =>
+  asyncHandler(async (req, res, next) => {
+    console.log(roles);
+    console.log(req.user);
+    if (!roles.includes(req.user.role)) {
+      return next(new AppError("you aren't to access this route", 403));
+    }
+    next();
+  });
+
+exports.forgotPassword = asyncHandler(async (req, res, next) => {
+  // find user using the email sent in req.body
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(
+      new AppError(`There is no user with this email ${req.body.email}`, 404)
+    );
+  }
+  // generate random number of 6 digits and store it in the DB
+  const resetCode = Math.floor(Math.random() * 1000000).toString();
+  const hashedRestCode = crypto
+    .createHmac('sha256', process.env.JWT_SECRET_KEY)
+    .update(resetCode)
+    .digest('hex');
+
+  // store the code in the DB
+  user.passwordRestCode = hashedRestCode;
+  user.passwordResetExpire = Date.now() + 10 * 60 * 1000; // 10m expiration time
+  user.passwordResetVerified = false;
+
+  user.save();
+  // send the code via email
+  const message = `Hi ${user.name}\n your reset code is\n\n${resetCode}\n\nknow that the code is valid for only 10min\nThe E-shop Team\n`;
+  try {
+    await sendMail({
+      to: user.email,
+      subject: 'Password Reset Code <E-Shop>',
+      text: message,
+    });
+  } catch (error) {
+    user.passwordRestCode = undefined;
+    user.passwordResetExpire = undefined;
+    user.passwordResetVerified = undefined;
+    user.save();
+    return next(new AppError('There is an error in sending email', 500));
+  }
+
+  res.status(200).json({
+    status: httpStatusText.SUCCESS,
+    data: `A reset code have been sent to your Email ${user.email}`,
+  });
 });

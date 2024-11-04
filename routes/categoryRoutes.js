@@ -13,6 +13,7 @@ router
   .route('/')
   .post(
     authController.verifyToken,
+    authController.allowedTo('admin', 'manager'),
     categoryControllers.uploadImage,
     categoryControllers.resizeImage,
     CategoryValidator.addCategoryValidator,
@@ -24,12 +25,16 @@ router
   .route('/:id')
   .get(CategoryValidator.getCategoryValidator, categoryControllers.getCategory)
   .put(
+    authController.verifyToken,
+    authController.allowedTo('admin', 'manager'),
     categoryControllers.uploadImage,
     categoryControllers.resizeImage,
     CategoryValidator.updateCategoryValidator,
     categoryControllers.UpdateCategory
   )
   .delete(
+    authController.verifyToken,
+    authController.allowedTo('admin'),
     CategoryValidator.deleteCategoryValidator,
     categoryControllers.deleteCategory
   );

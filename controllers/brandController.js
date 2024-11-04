@@ -9,13 +9,15 @@ const uploadImage = uploadSingleImage('image');
 
 const resizeImage = asyncHandler(async (req, res, next) => {
   const fileName = `brand-${Date.now()}.jpeg`;
-  await sharp(req.file.buffer)
-    .resize(600, 600)
-    .toFormat('jpeg')
-    .jpeg({ quality: 90 })
-    .toFile(`uploads/brands/${fileName}`);
+  if (req.file) {
+    await sharp(req.file.buffer)
+      .resize(600, 600)
+      .toFormat('jpeg')
+      .jpeg({ quality: 90 })
+      .toFile(`uploads/brands/${fileName}`);
 
-  req.body.image = fileName;
+    req.body.image = fileName;
+  }
   next();
 });
 
