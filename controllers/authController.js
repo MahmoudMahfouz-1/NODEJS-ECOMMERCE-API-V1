@@ -6,11 +6,7 @@ const User = require('../models/userModel');
 const httpStatusText = require('../utils/httpStatusText');
 const AppError = require('../utils/appError');
 const { sendMail } = require('../utils/sendMail');
-
-const generateToken = (payload) =>
-  jwt.sign({ payload }, process.env.JWT_SECRET_KEY, {
-    expiresIn: process.env.JWT_EXPIRE_TIME,
-  });
+const generateToken = require('../utils/generateToken');
 
 //@desc     signup
 //@route    POST /api/v1/auth/signup
@@ -65,17 +61,19 @@ exports.verifyToken = asyncHandler(async (req, res, next) => {
 
   // 4) check if the user has changed the password after the token was generated
   // console.log(decoded.iat);
-  const passChangedAt = parseInt(
-    currentUser.passChangedAt.getTime() / 1000,
-    10
-  );
-  if (passChangedAt > decoded.iat) {
-    return next(
-      new AppError(
-        'Password have changed after login, Please Login again ... ',
-        401
-      )
+  if (currentUser.passChangedAt) {
+    const passChangedAt = parseInt(
+      currentUser.passChangedAt.getTime() / 1000,
+      10
     );
+    if (passChangedAt > decoded.iat) {
+      return next(
+        new AppError(
+          'Password have changed after login, Please Login again ... ',
+          401
+        )
+      );
+    }
   }
 
   req.user = currentUser;
@@ -135,5 +133,53 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     status: httpStatusText.SUCCESS,
     data: `A reset code have been sent to your Email ${user.email}`,
+  });
+});
+
+exports.verifyPassResetCode = asyncHandler(async (req, res, next) => {
+  // 1) get the reset code and get the user based on the reset code
+  const { resetCode } = req.body;
+  const hashedResetCode = crypto
+    .createHmac('sha256', process.env.JWT_SECRET_KEY)
+    .update(resetCode)
+    .digest('hex');
+
+  const user = await User.findOne({
+    passwordRestCode: hashedResetCode,
+    passwordResetExpire: { $gt: Date.now() },
+  });
+  if (!user) {
+    return next(new AppError('Invalid ResetCode or Expired Reset Code', 404));
+  }
+  user.passwordResetVerified = true;
+  await user.save();
+
+  res
+    .status(200)
+    .json({ status: httpStatusText.SUCCESS, data: `Reset Code verified` });
+});
+
+exports.resetPassword = asyncHandler(async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(new AppError('There is no user with this Email', 404));
+  }
+  if (!user.passwordResetVerified) {
+    return next(new AppError('Reset Code is not verified', 400));
+  }
+  // set new password
+  user.password = req.body.newPassword;
+
+  // reset all forgot password items to undefined
+  user.passwordRestCode = undefined;
+  user.passwordResetExpire = undefined;
+  user.passwordResetVerified = undefined;
+  await user.save();
+
+  const token = generateToken(user._id);
+  res.status(200).json({
+    status: httpStatusText.SUCCESS,
+    data: `The new password has been set successfully`,
+    token,
   });
 });

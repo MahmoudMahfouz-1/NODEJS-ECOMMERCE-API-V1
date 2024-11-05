@@ -12,43 +12,41 @@ router
     userControllers.changeUserPassword
   );
 
+router.use(authController.verifyToken);
+router.get(
+  '/getMe',
+  userControllers.getLoggedUserData,
+  userControllers.getUser
+);
+router.put('/changeMyPassword', userControllers.updateLoggedUserPassword);
+router.put(
+  '/updateMe',
+  userValidator.updateLoggedUserValidator,
+  userControllers.updateLoggedUserData
+);
+router.delete('/deleteMe', userControllers.deleteLoggedUserData);
+
+router.use(authController.allowedTo('admin'));
+
 router
   .route('/')
   .post(
-    authController.verifyToken,
-    authController.allowedTo('admin'),
     userControllers.uploadImage,
     userControllers.resizeImage,
     userValidator.addUserValidator,
     userControllers.addUser
   )
-  .get(
-    authController.verifyToken,
-    authController.allowedTo('admin', 'manager'),
-    userControllers.getUsers
-  );
+  .get(userControllers.getUsers);
 
 router
   .route('/:id')
-  .get(
-    authController.verifyToken,
-    authController.allowedTo('admin'),
-    userValidator.getUserValidator,
-    userControllers.getUser
-  )
+  .get(userValidator.getUserValidator, userControllers.getUser)
   .put(
-    authController.verifyToken,
-    authController.allowedTo('admin'),
     userControllers.uploadImage,
     userControllers.resizeImage,
     userValidator.updateUserValidator,
     userControllers.UpdateUser
   )
-  .delete(
-    authController.verifyToken,
-    authController.allowedTo('admin'),
-    userValidator.deleteUserValidator,
-    userControllers.deleteUser
-  );
+  .delete(userValidator.deleteUserValidator, userControllers.deleteUser);
 
 module.exports = router;

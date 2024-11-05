@@ -6,6 +6,7 @@ const factory = require('./handlersFactory');
 const AppError = require('../utils/appError');
 const httpStatusText = require('../utils/httpStatusText');
 const { uploadSingleImage } = require('../Middlewares/uploadImage');
+const generateToken = require('../utils/generateToken');
 
 const uploadImage = uploadSingleImage('image');
 
@@ -100,6 +101,64 @@ const changeUserPassword = asyncHandler(async (req, res, next) => {
 //@access   Private
 const deleteUser = factory.deleteOne(User);
 
+//@desc     Get logged User Data
+//@route    GET /api/v1/users/getMe
+//@access   Private
+const getLoggedUserData = asyncHandler(async (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
+});
+
+//@desc     Change Logged User Password
+//@route    GET /api/v1/users/changeMyPassword
+//@access   Private
+const updateLoggedUserPassword = asyncHandler(async (req, res, next) => {
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      password: await bcrypt.hash(req.body.password, 12),
+      passChangedAt: Date.now(),
+    },
+    { new: true }
+  );
+
+  const token = generateToken(user._id);
+
+  res.status(200).json({ status: httpStatusText.SUCCESS, data: user, token });
+});
+
+//@desc     Change Logged User Data
+//@route    GET /api/v1/users/updateMe
+//@access   Private
+const updateLoggedUserData = asyncHandler(async (req, res, next) => {
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      email: req.body.email,
+      name: req.body.name,
+      phone: req.body.phone,
+    },
+    { new: true }
+  );
+  res.status(200).json({ status: httpStatusText.SUCCESS, data: updatedUser });
+});
+
+//@desc     delete user
+//@route    GET /api/v1/users/deleteMe
+//@access   Private
+const deleteLoggedUserData = asyncHandler(async (req, res, next) => {
+  await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      active: false,
+    },
+    { new: true }
+  );
+  res.status(200).json({
+    status: httpStatusText.SUCCESS,
+    data: `user deleted successfully`,
+  });
+});
 module.exports = {
   addUser,
   getUsers,
@@ -109,4 +168,8 @@ module.exports = {
   uploadImage,
   resizeImage,
   changeUserPassword,
+  getLoggedUserData,
+  updateLoggedUserPassword,
+  updateLoggedUserData,
+  deleteLoggedUserData,
 };

@@ -122,10 +122,35 @@ const deleteUserValidator = [
   check('id').isMongoId().withMessage('Invalid MongoDB ID Format'),
   expressValidator,
 ];
+
+const updateLoggedUserValidator = [
+  body('name').custom((val, { req }) => {
+    req.body.slug = slugify(val, { lower: true });
+    return true;
+  }),
+  check('email')
+    .isEmail()
+    .withMessage('Must be an E-mail')
+    .custom(async (val) => {
+      const user = await User.findOne({ email: val });
+      if (user) {
+        throw new Error('Email Already in Use');
+      }
+      return true;
+    }),
+
+  check('phone')
+    .optional()
+    .isMobilePhone(['ar-EG', 'ar-SA'])
+    .withMessage('Phone must be EG or SA only'),
+
+  expressValidator,
+];
 module.exports = {
   getUserValidator,
   addUserValidator,
   updateUserValidator,
   deleteUserValidator,
   changeUserPasswordValidator,
+  updateLoggedUserValidator,
 };
