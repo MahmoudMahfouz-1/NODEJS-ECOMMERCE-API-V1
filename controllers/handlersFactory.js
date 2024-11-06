@@ -40,12 +40,18 @@ const createOne = (Model) =>
     res.status(201).json({ status: httpStatusText.SUCCESS, data: document });
   });
 
-const getOne = (Model) =>
+const getOne = (Model, populationOpt) =>
   asyncHandler(async (req, res, next) => {
     if (!req.params.id) {
       return next(new AppError(`You must enter an ID`, 400));
     }
-    const document = await Model.findById(req.params.id);
+    // Build Query
+    let query = Model.findById(req.params.id);
+    if (populationOpt) {
+      query = query.populate(populationOpt);
+    }
+    // Execute Query
+    const document = await query;
     if (!document) {
       return next(
         new AppError(`No category found with this id ${req.params.id}`, 404)

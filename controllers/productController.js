@@ -54,7 +54,7 @@ const getProducts = factory.getAll(Product);
 //@desc     Get Product by id
 //@route    GET /api/v1/products/:id
 //@access   Public
-const getProduct = factory.getOne(Product);
+const getProduct = factory.getOne(Product, 'reviews');
 
 //@desc     Update product by id
 //@route    PUT /api/v1/products/:id

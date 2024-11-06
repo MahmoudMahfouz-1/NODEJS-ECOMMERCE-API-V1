@@ -4,7 +4,9 @@ const httpStatusText = require('../utils/httpStatusText');
 const expressValidator = (req, res, next) => {
   const result = validationResult(req);
   if (!result.isEmpty()) {
-    return res.json({ status: httpStatusText.ERROR, errors: result.array() });
+    return res
+      .status(400)
+      .json({ status: httpStatusText.ERROR, errors: result.array() });
   }
   next();
 };

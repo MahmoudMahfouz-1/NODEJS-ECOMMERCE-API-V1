@@ -60,7 +60,6 @@ exports.verifyToken = asyncHandler(async (req, res, next) => {
   }
 
   // 4) check if the user has changed the password after the token was generated
-  // console.log(decoded.iat);
   if (currentUser.passChangedAt) {
     const passChangedAt = parseInt(
       currentUser.passChangedAt.getTime() / 1000,
@@ -82,11 +81,8 @@ exports.verifyToken = asyncHandler(async (req, res, next) => {
 
 //@desc     Checks the roles (Authoraization)
 //@access   Private
-
 exports.allowedTo = (...roles) =>
   asyncHandler(async (req, res, next) => {
-    console.log(roles);
-    console.log(req.user);
     if (!roles.includes(req.user.role)) {
       return next(new AppError("you aren't to access this route", 403));
     }

@@ -22,4 +22,10 @@ const reviewSchema = new mongoose.Schema({
   },
 });
 
+// populate ant query with find in it
+reviewSchema.pre(/^find/, function (next) {
+  this.populate({ path: 'user', select: 'name' });
+  next();
+});
+
 module.exports = mongoose.model('Review', reviewSchema);
