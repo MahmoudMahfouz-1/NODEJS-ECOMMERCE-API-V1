@@ -1,4 +1,5 @@
 .env
-
+filterObject.js
+setCategoryIdToBody.js
 node_modules/
 uploads/

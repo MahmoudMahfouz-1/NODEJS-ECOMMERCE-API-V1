@@ -2,9 +2,11 @@ const express = require('express');
 const productControllers = require('../controllers/productController');
 const productValidator = require('../utils/Validators/productValidator');
 const authController = require('../controllers/authController');
+const reviewRouter = require('./reviewRoutes');
 
 const router = express.Router();
-
+// GET products/SOMEID/reviews => get all reviews for a product
+router.use('/:productId/reviews', reviewRouter);
 router
   .route('/')
   .post(

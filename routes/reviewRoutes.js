@@ -3,17 +3,18 @@ const reviewControllers = require('../controllers/reviewController');
 const authController = require('../controllers/authController');
 const reviewValidator = require('../utils/Validators/reviewValidator');
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 router
   .route('/')
   .post(
     authController.verifyToken,
     authController.allowedTo('user', 'admin'),
+    reviewControllers.setProductIdandUserIdToBody,
     reviewValidator.addReviewValidator,
     reviewControllers.addReview
   )
-  .get(reviewControllers.getReviews);
+  .get(reviewControllers.filterObject, reviewControllers.getReviews);
 
 router
   .route('/:id')

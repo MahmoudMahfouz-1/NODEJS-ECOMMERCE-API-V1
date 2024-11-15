@@ -72,6 +72,7 @@ const getAll = (Model) =>
 
     // Excuting Query
     const { mongooseQuery, pagination } = apiFeatures;
+    mongooseQuery.find(req.filterObj);
     const documents = await mongooseQuery;
 
     res.status(200).json({
