@@ -17,6 +17,7 @@ const userRouter = require('./routes/userRoutes');
 const authRouter = require('./routes/authRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
 const wishlistRouter = require('./routes/wishlistRoutes');
+const addressesRouter = require('./routes/addressesRoutes');
 
 // connect to database
 dbConnection();
@@ -39,6 +40,7 @@ app.use('/api/v1/users', userRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/reviews', reviewRouter);
 app.use('/api/v1/wishlist', wishlistRouter);
+app.use('/api/v1/addresses', addressesRouter);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`No Path with This URL: ${req.originalUrl}`, 404));
