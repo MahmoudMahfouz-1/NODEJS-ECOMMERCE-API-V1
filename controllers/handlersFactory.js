@@ -14,6 +14,8 @@ const deleteOne = (Model) =>
     if (!document) {
       return next(new AppError(`No document found with this id ${id}`, 404));
     }
+    // Trigger 'deleteOne' event
+    await document.deleteOne();
     res.status(202).json({ status: httpStatusText.SUCCESS, data: document });
   });
 
@@ -31,6 +33,8 @@ const updateOne = (Model) =>
         new AppError(`No document found with this id ${req.params.id}`, 404)
       );
     }
+    // Trigger 'save' event
+    document.save();
     res.status(200).json({ status: httpStatusText.SUCCESS, data: document });
   });
 
