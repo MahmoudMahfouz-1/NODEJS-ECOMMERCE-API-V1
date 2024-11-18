@@ -74,7 +74,7 @@ const getAll = (Model) =>
       .limitFields()
       .search();
 
-    // Excuting Query
+    // Executing Query
     const { mongooseQuery, pagination } = apiFeatures;
     mongooseQuery.find(req.filterObj);
     const documents = await mongooseQuery;
