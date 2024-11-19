@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler');
 const stripe = require('stripe')(process.env.STRIPE_SECRET);
 const factory = require('./handlersFactory');
 const Cart = require('../models/cartModel');
+const User = require('../models/userModel');
 const Product = require('../models/productModel');
 const Order = require('../models/orderModel');
 const AppError = require('../utils/appError');
@@ -141,6 +142,7 @@ const checkOutSession = asyncHandler(async (req, res, next) => {
     success_url: `${req.protocol}://${req.get('host')}/orders`,
     cancel_url: `${req.protocol}://${req.get('host')}/cart`,
     customer_email: req.user.email,
+    metadata: { address: req.body.shippingAddress },
     // customer: {
     //   name: req.user.name,
     //   email: req.user.email,
@@ -150,6 +152,21 @@ const checkOutSession = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({ status: httpStatusText.SUCCESS, session });
 });
+
+const createOrderViaCard = async (session) => {
+  // const cartId = session.client_reference_id;
+  // const orderPrice = session.amount_total / 100;
+  // const userEmail = session.customer_email;
+  // const cart = await Cart.findById(cartId);
+  // const user = await User.findOne({ email: userEmail });
+  // create Order
+  // const order = await Order.create({
+  //   user: req.user._id,
+  //   cartItems: cart.cartItems,
+  //   shippingAddress: req.body.shippingAddress,
+  //   totalOrderPrice: totalOrderPrice,
+  // });
+};
 
 const webhookCheckout = asyncHandler(async (req, res, next) => {
   let event = req.body;
@@ -170,8 +187,9 @@ const webhookCheckout = asyncHandler(async (req, res, next) => {
     }
   }
   if (event.type === 'checkout.session.completed') {
-    console.log(`Create Order Here ...`);
-    console.log(`EVENT: `, event);
+    // Create Order
+    console.log(event.data.object);
+    createOrderViaCard(event.data.object);
   }
 });
 module.exports = {
