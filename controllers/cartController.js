@@ -43,13 +43,11 @@ const addProductToCart = asyncHandler(async (req, res, next) => {
       // if the product isn't in the cart then push it to the cartItems Array
       cart.cartItems.push({ product: productId, color, price: product.price });
     }
-
-    // calculate totalCartPrice
-    const totalPrice = calcTotalCartPrice(cart);
-    cart.totalCartPrice = totalPrice;
-    console.log(cart);
-    await cart.save();
   }
+  // calculate totalCartPrice
+  const totalPrice = calcTotalCartPrice(cart);
+  cart.totalCartPrice = totalPrice;
+  await cart.save();
   res.status(200).json({ status: httpStatusText.SUCCESS, data: cart });
 });
 
