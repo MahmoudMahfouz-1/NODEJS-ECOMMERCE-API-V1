@@ -5,6 +5,7 @@ const authController = require('../controllers/authController');
 const router = express.Router();
 router.use(authController.verifyToken);
 
+router.get('/checkout-session/:cartId', orderControllers.checkOutSession);
 router
   .route('/:cartId')
   .post(

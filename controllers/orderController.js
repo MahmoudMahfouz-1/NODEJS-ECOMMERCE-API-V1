@@ -1,4 +1,5 @@
 const asyncHandler = require('express-async-handler');
+const stripe = require('stripe')(process.env.STRIPE_SECRET);
 const factory = require('./handlersFactory');
 const Cart = require('../models/cartModel');
 const Product = require('../models/productModel');
@@ -102,6 +103,54 @@ const updateOrderToDelivered = asyncHandler(async (req, res, next) => {
   res.status(200).json({ status: httpStatusText.SUCCESS, data: updatedOrder });
 });
 
+//@desc     Create checkout session
+//@route    GET /api/v1/orders/checkout-session/:cartId
+//@access   Private/admin-user
+const checkOutSession = asyncHandler(async (req, res, next) => {
+  // app Setting
+  const taxPrice = 0;
+  const shippingPrice = 0;
+  // 1- Get cart Depending on cartId
+  const cart = await Cart.findById(req.params.cartId);
+  if (!cart) {
+    return next(
+      new AppError(`There is No Cart with this ID ${req.params.cartId}`, 404)
+    );
+  }
+  // 2- get Total Order price from the cart - check if there is a coupon or not
+  const totalCartPrice = cart.totalPriceAfterDiscount
+    ? cart.totalPriceAfterDiscount
+    : cart.totalCartPrice;
+  const totalOrderPrice = totalCartPrice + taxPrice + shippingPrice;
+
+  const session = await stripe.checkout.sessions.create({
+    line_items: [
+      {
+        price_data: {
+          currency: 'egp',
+          unit_amount: totalOrderPrice * 100,
+          product_data: {
+            name: 'Total Cart Items',
+            // description: 'Comfortable cotton t-shirt',
+          },
+        },
+        quantity: 1,
+      },
+    ],
+    mode: 'payment',
+    success_url: `${req.protocol}://${req.get('host')}/orders`,
+    cancel_url: `${req.protocol}://${req.get('host')}/cart`,
+    customer_email: req.user.email,
+    // customer: {
+    //   name: req.user.name,
+    //   email: req.user.email,
+    // },
+    client_reference_id: req.params.cartId,
+  });
+
+  res.status(200).json({ status: httpStatusText.SUCCESS, session });
+});
+
 module.exports = {
   createCashOrder,
   filterObjForLoggedUser,
@@ -109,4 +158,5 @@ module.exports = {
   getOrder,
   updateOrderToPaid,
   updateOrderToDelivered,
+  checkOutSession,
 };

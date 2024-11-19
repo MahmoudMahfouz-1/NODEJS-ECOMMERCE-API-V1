@@ -1,6 +1,8 @@
 const express = require('express');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
+const cors = require('cors');
+const compression = require('compression');
 
 dotenv.config();
 
@@ -15,6 +17,13 @@ const mountRoutes = require('./routes');
 dbConnection();
 
 const app = express();
+
+// Used to compress response
+app.use(compression());
+
+// Enable CORS configurations
+app.use(cors());
+app.options('*', cors());
 // Middlewares
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
