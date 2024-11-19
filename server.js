@@ -12,7 +12,7 @@ const globalErrorHandler = require('./Middlewares/globalErrorHandler');
 
 // Routes
 const mountRoutes = require('./routes');
-
+const { webhookCheckout } = require('./controllers/orderController');
 // connect to database
 dbConnection();
 
@@ -25,6 +25,12 @@ app.use(compression());
 app.use(cors());
 app.options('*', cors());
 // Middlewares
+app.post(
+  '/webhook-checkout',
+  express.raw({ type: 'application/json' }),
+  webhookCheckout
+);
+
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
   console.log(`Current Mode is ${process.env.NODE_ENV}`);

@@ -151,6 +151,28 @@ const checkOutSession = asyncHandler(async (req, res, next) => {
   res.status(200).json({ status: httpStatusText.SUCCESS, session });
 });
 
+const webhookCheckout = asyncHandler(async (req, res, next) => {
+  let event = req.body;
+  // Only verify the event if you have an endpoint secret defined.
+  // Otherwise use the basic event deserialized with JSON.parse
+  if (process.env.STRIPE_WEBHOOK_SECRET) {
+    // Get the signature sent by Stripe
+    const signature = req.headers['stripe-signature'];
+    try {
+      event = stripe.webhooks.constructEvent(
+        req.body,
+        signature,
+        process.env.STRIPE_WEBHOOK_SECRET
+      );
+    } catch (err) {
+      console.log(`⚠️  Webhook signature verification failed.`, err.message);
+      return res.sendStatus(400);
+    }
+  }
+  if (event) {
+    console.log(`Create Order Here ...`);
+  }
+});
 module.exports = {
   createCashOrder,
   filterObjForLoggedUser,
@@ -159,4 +181,5 @@ module.exports = {
   updateOrderToPaid,
   updateOrderToDelivered,
   checkOutSession,
+  webhookCheckout,
 };
