@@ -169,7 +169,7 @@ const webhookCheckout = asyncHandler(async (req, res, next) => {
       return res.sendStatus(400);
     }
   }
-  if (event) {
+  if (event.type === 'checkout.session.completed') {
     console.log(`Create Order Here ...`);
   }
 });
