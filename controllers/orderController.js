@@ -154,18 +154,34 @@ const checkOutSession = asyncHandler(async (req, res, next) => {
 });
 
 const createOrderViaCard = async (session) => {
-  // const cartId = session.client_reference_id;
-  // const orderPrice = session.amount_total / 100;
-  // const userEmail = session.customer_email;
-  // const cart = await Cart.findById(cartId);
-  // const user = await User.findOne({ email: userEmail });
+  const cartId = session.client_reference_id;
+  const orderPrice = session.amount_total / 100;
+  const userEmail = session.customer_email;
+  const cart = await Cart.findById(cartId);
+  const user = await User.findOne({ email: userEmail });
   // create Order
-  // const order = await Order.create({
-  //   user: req.user._id,
-  //   cartItems: cart.cartItems,
-  //   shippingAddress: req.body.shippingAddress,
-  //   totalOrderPrice: totalOrderPrice,
-  // });
+  const order = await Order.create({
+    user: user._id,
+    cartItems: cart.cartItems,
+    shippingAddress: session.metadata.address,
+    totalOrderPrice: orderPrice,
+    isPaid: true,
+    paidAt: Date.now(),
+    paymentMethod: 'card',
+  });
+
+  // 4- decrement product quantity and increment product sold field
+  if (order) {
+    const bulkOptions = cart.cartItems.map((item) => ({
+      updateOne: {
+        filter: { _id: item.product },
+        update: { $inc: { quantity: -item.quantity, sold: +item.quantity } },
+      },
+    }));
+    await Product.bulkWrite(bulkOptions, {});
+    // 5- clear cart depending on cartId
+    await Cart.findByIdAndDelete(cartId);
+  }
 };
 
 const webhookCheckout = asyncHandler(async (req, res, next) => {
@@ -188,8 +204,8 @@ const webhookCheckout = asyncHandler(async (req, res, next) => {
   }
   if (event.type === 'checkout.session.completed') {
     // Create Order
-    console.log(event.data.object);
     createOrderViaCard(event.data.object);
+    res.status(200).json({ status: httpStatusText.SUCCESS, received: true });
   }
 });
 module.exports = {
