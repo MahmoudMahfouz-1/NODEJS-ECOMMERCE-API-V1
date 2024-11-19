@@ -171,6 +171,7 @@ const webhookCheckout = asyncHandler(async (req, res, next) => {
   }
   if (event.type === 'checkout.session.completed') {
     console.log(`Create Order Here ...`);
+    console.log(`client_reference_id: ${event.client_reference_id}`);
   }
 });
 module.exports = {
