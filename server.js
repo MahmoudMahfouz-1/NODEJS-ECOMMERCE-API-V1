@@ -10,6 +10,7 @@ const xss = require('xss-clean');
 
 dotenv.config();
 
+const swaggerSetup = require('./swagger/swagger'); // Import the Swagger setup
 const dbConnection = require('./config/dbConnection');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./Middlewares/globalErrorHandler');
@@ -70,6 +71,8 @@ app.use(
 // Mount Routes
 mountRoutes(app);
 
+// Initialize Swagger UI
+swaggerSetup(app);
 app.all('*', (req, res, next) => {
   next(new AppError(`No Path with This URL: ${req.originalUrl}`, 404));
 });

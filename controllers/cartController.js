@@ -29,7 +29,6 @@ const addProductToCart = asyncHandler(async (req, res, next) => {
       cartItems: [{ product: productId, color, price: product.price }],
       user: req.user._id,
     });
-    console.log(cart);
   } else {
     // there is a cart
     // check if the product exists in the cartItems array update the quantity of the product with one
