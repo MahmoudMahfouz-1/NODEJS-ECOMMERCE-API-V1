@@ -33,7 +33,6 @@ const options = {
         name: 'Orders',
         description: 'Operations related to Orders and Card Payment',
       },
-
       // Add more tags here as needed
     ],
   },
@@ -57,8 +56,12 @@ const options = {
 const specs = swaggerJsdoc(options);
 
 const swaggerSetup = (app) => {
-  // Setup Swagger UI
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+  // Setup Swagger UI with "Try it out" feature disabled
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
+    swaggerOptions: {
+      tryItOutEnabled: false, // Disable the Try it out button
+    }
+  }));
 };
 
 module.exports = swaggerSetup;
